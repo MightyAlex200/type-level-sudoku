@@ -3,10 +3,38 @@ module Main
 %default total
 
 data SudokuDigit : Type where
-  SudokuValid : (n : Nat) -> { auto gte : n `GTE` 1 } -> { auto lte : n `LTE` 9 } -> SudokuDigit
+  One : SudokuDigit
+  Two : SudokuDigit
+  Three : SudokuDigit
+  Four : SudokuDigit
+  Five : SudokuDigit
+  Six : SudokuDigit
+  Seven : SudokuDigit
+  Eight : SudokuDigit
+  Nine : SudokuDigit
 
 implementation Eq SudokuDigit where
-  (SudokuValid (n1)) == (SudokuValid (n2)) = n1 == n2
+  One == One = True
+  Two == Two = True
+  Three == Three = True
+  Four == Four = True
+  Five == Five = True
+  Six == Six = True
+  Seven == Seven = True
+  Eight == Eight = True
+  Nine == Nine = True
+  _ == _ = False
+
+div3case : SudokuDigit -> a -> a -> a -> a
+div3case One c1 c2 c3 = c1
+div3case Two c1 c2 c3 = c1
+div3case Three c1 c2 c3 = c1
+div3case Four c1 c2 c3 = c2
+div3case Five c1 c2 c3 = c2
+div3case Six c1 c2 c3 = c2
+div3case Seven c1 c2 c3 = c3
+div3case Eight c1 c2 c3 = c3
+div3case Nine c1 c2 c3 = c3
 
 SudokuPosition : Type
 SudokuPosition = (SudokuDigit, SudokuDigit)
@@ -27,16 +55,9 @@ sudokuDigitsValid [] = True
 sudokuDigitsValid (x :: xs) = (not (x `elem` xs)) && (sudokuDigitsValid xs)
 
 digits : List SudokuDigit
-digits = [ SudokuValid 1
-         , SudokuValid 2
-         , SudokuValid 3
-         , SudokuValid 4
-         , SudokuValid 5
-         , SudokuValid 6
-         , SudokuValid 7
-         , SudokuValid 8
-         , SudokuValid 9
-         ]
+digits = [ One,   Two,   Three
+         , Four,  Five,  Six
+         , Seven, Eight, Nine ]
 
 sudokuVert : UnsafeSudoku -> SudokuDigit -> List SudokuDigit
 sudokuVert s d = mapMaybe (sudokuPosition s) positions
@@ -59,158 +80,36 @@ sudokuHorizontalsValid s = all sudokuDigitsValid (map (sudokuHorizontal s) digit
 -- 4 5 6
 -- 7 8 9
 positionSquare : SudokuPosition -> SudokuDigit
-positionSquare (SudokuValid x, SudokuValid y) =
-  case (toIntegerNat x) of
-    1 => c1
-    2 => c1
-    3 => c1
-    4 => c2
-    5 => c2
-    6 => c2
-    7 => c3
-    8 => c3
-    9 => c3
-    _ => assert_unreachable
-  where
-    c1 : SudokuDigit
-    c1 =
-      case toIntegerNat y of
-        1 => SudokuValid 1
-        2 => SudokuValid 1
-        3 => SudokuValid 1
-        4 => SudokuValid 4
-        5 => SudokuValid 4
-        6 => SudokuValid 4
-        7 => SudokuValid 7
-        8 => SudokuValid 7
-        9 => SudokuValid 7
-        _ => assert_unreachable
-    c2 : SudokuDigit
-    c2 =
-      case toIntegerNat y of
-        1 => SudokuValid 2
-        2 => SudokuValid 2
-        3 => SudokuValid 2
-        4 => SudokuValid 5
-        5 => SudokuValid 5
-        6 => SudokuValid 5
-        7 => SudokuValid 8
-        8 => SudokuValid 8
-        9 => SudokuValid 8
-        _ => assert_unreachable
-    c3 : SudokuDigit
-    c3 =
-      case toIntegerNat y of
-        1 => SudokuValid 3
-        2 => SudokuValid 3
-        3 => SudokuValid 3
-        4 => SudokuValid 6
-        5 => SudokuValid 6
-        6 => SudokuValid 6
-        7 => SudokuValid 9
-        8 => SudokuValid 9
-        9 => SudokuValid 9
-        _ => assert_unreachable
+positionSquare (x, y) =
+  div3case x
+    (div3case y One Four Seven)
+    (div3case y Two Five Eight)
+    (div3case y Three Six Nine)
 
 sudokuSquare : UnsafeSudoku -> SudokuPosition -> List SudokuDigit
 sudokuSquare s p = mapMaybe (sudokuPosition s) positions
   where squareDigit : SudokuDigit
         squareDigit = positionSquare p
+        ott : List SudokuDigit
+        ott = [One, Two, Three]
+        ffs : List SudokuDigit
+        ffs = [Four, Five, Six]
+        sen : List SudokuDigit
+        sen = [Seven, Eight, Nine]
+        g : List SudokuDigit -> List SudokuDigit -> List SudokuPosition
+        g a b =
+          concatMap (\ea => map (MkPair ea) b) a
         positions =
           case squareDigit of
-            SudokuValid n => 
-              case toIntegerNat n of
-                1 => [ (SudokuValid 1, SudokuValid 1)
-                    , (SudokuValid 2, SudokuValid 1)
-                    , (SudokuValid 3, SudokuValid 1)
-                    , (SudokuValid 1, SudokuValid 2)
-                    , (SudokuValid 2, SudokuValid 2)
-                    , (SudokuValid 3, SudokuValid 2)
-                    , (SudokuValid 1, SudokuValid 3)
-                    , (SudokuValid 2, SudokuValid 3)
-                    , (SudokuValid 3, SudokuValid 3)
-                    ]
-                2 => [ (SudokuValid 4, SudokuValid 1)
-                    , (SudokuValid 5, SudokuValid 1)
-                    , (SudokuValid 6, SudokuValid 1)
-                    , (SudokuValid 4, SudokuValid 2)
-                    , (SudokuValid 5, SudokuValid 2)
-                    , (SudokuValid 6, SudokuValid 2)
-                    , (SudokuValid 4, SudokuValid 3)
-                    , (SudokuValid 5, SudokuValid 3)
-                    , (SudokuValid 6, SudokuValid 3)
-                    ]
-                3 => [ (SudokuValid 7, SudokuValid 1)
-                    , (SudokuValid 8, SudokuValid 1)
-                    , (SudokuValid 9, SudokuValid 1)
-                    , (SudokuValid 7, SudokuValid 2)
-                    , (SudokuValid 8, SudokuValid 2)
-                    , (SudokuValid 9, SudokuValid 2)
-                    , (SudokuValid 7, SudokuValid 3)
-                    , (SudokuValid 8, SudokuValid 3)
-                    , (SudokuValid 9, SudokuValid 3)
-                    ]
-                4 => [ (SudokuValid 1, SudokuValid 4)
-                    , (SudokuValid 2, SudokuValid 4)
-                    , (SudokuValid 3, SudokuValid 4)
-                    , (SudokuValid 1, SudokuValid 5)
-                    , (SudokuValid 2, SudokuValid 5)
-                    , (SudokuValid 3, SudokuValid 5)
-                    , (SudokuValid 1, SudokuValid 6)
-                    , (SudokuValid 2, SudokuValid 6)
-                    , (SudokuValid 3, SudokuValid 6)
-                    ]
-                5 => [ (SudokuValid 4, SudokuValid 4)
-                    , (SudokuValid 5, SudokuValid 4)
-                    , (SudokuValid 6, SudokuValid 4)
-                    , (SudokuValid 4, SudokuValid 5)
-                    , (SudokuValid 5, SudokuValid 5)
-                    , (SudokuValid 6, SudokuValid 5)
-                    , (SudokuValid 4, SudokuValid 6)
-                    , (SudokuValid 5, SudokuValid 6)
-                    , (SudokuValid 6, SudokuValid 6)
-                    ]
-                6 => [ (SudokuValid 7, SudokuValid 4)
-                    , (SudokuValid 8, SudokuValid 4)
-                    , (SudokuValid 9, SudokuValid 4)
-                    , (SudokuValid 7, SudokuValid 5)
-                    , (SudokuValid 8, SudokuValid 5)
-                    , (SudokuValid 9, SudokuValid 5)
-                    , (SudokuValid 7, SudokuValid 6)
-                    , (SudokuValid 8, SudokuValid 6)
-                    , (SudokuValid 9, SudokuValid 6)
-                    ]
-                7 => [ (SudokuValid 1, SudokuValid 7)
-                    , (SudokuValid 2, SudokuValid 7)
-                    , (SudokuValid 3, SudokuValid 7)
-                    , (SudokuValid 1, SudokuValid 8)
-                    , (SudokuValid 2, SudokuValid 8)
-                    , (SudokuValid 3, SudokuValid 8)
-                    , (SudokuValid 1, SudokuValid 9)
-                    , (SudokuValid 2, SudokuValid 9)
-                    , (SudokuValid 3, SudokuValid 9)
-                    ]
-                8 => [ (SudokuValid 4, SudokuValid 7)
-                    , (SudokuValid 5, SudokuValid 7)
-                    , (SudokuValid 6, SudokuValid 7)
-                    , (SudokuValid 4, SudokuValid 8)
-                    , (SudokuValid 5, SudokuValid 8)
-                    , (SudokuValid 6, SudokuValid 8)
-                    , (SudokuValid 4, SudokuValid 9)
-                    , (SudokuValid 5, SudokuValid 9)
-                    , (SudokuValid 6, SudokuValid 9)
-                    ]
-                9 => [ (SudokuValid 7, SudokuValid 7)
-                    , (SudokuValid 8, SudokuValid 7)
-                    , (SudokuValid 9, SudokuValid 7)
-                    , (SudokuValid 7, SudokuValid 8)
-                    , (SudokuValid 8, SudokuValid 8)
-                    , (SudokuValid 9, SudokuValid 8)
-                    , (SudokuValid 7, SudokuValid 9)
-                    , (SudokuValid 8, SudokuValid 9)
-                    , (SudokuValid 9, SudokuValid 9)
-                    ]
-                _ => assert_unreachable
+            One   => g ott ott
+            Two   => g ott ffs
+            Three => g ott sen
+            Four  => g ffs ott
+            Five  => g ffs ffs
+            Six   => g ffs sen
+            Seven => g sen ott
+            Eight => g sen ffs
+            Nine  => g sen sen
 
 sudokuSquaresValid : UnsafeSudoku -> Bool
 sudokuSquaresValid s = all sudokuDigitsValid (map (sudokuSquare s) positions)
