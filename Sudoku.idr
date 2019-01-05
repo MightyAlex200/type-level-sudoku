@@ -134,10 +134,7 @@ sudokuValid u =
   case u of
     Empty      => True
     Move s p d =>
-      sudokuVertsValid u && sudokuHorizontalsValid u && sudokuSquaresValid u &&
-      case s of
-        Empty         => True
-        Move ss sp sd => (sudokuValid s) && not (sp == p)
+      sudokuPosition s p == Nothing && sudokuVertsValid u && sudokuHorizontalsValid u && sudokuSquaresValid u
 
 ||| Sudoku board whose validity is required
 data Sudoku : Type where
