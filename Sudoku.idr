@@ -1,6 +1,7 @@
-module Main
+module Sudoku
 
 %default total
+%access public export
 
 ||| A digit in the game of Sudoku.
 ||| Can be from 1 - 9 inclusive.
